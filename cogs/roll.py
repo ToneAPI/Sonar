@@ -30,7 +30,7 @@ class Roll(commands.Cog):
         elif(rolled <= 50 and rolled > 25):
             rating = "Meh"
         elif(rolled <= 25 and rolled > 1):
-            rating = "Almost"
+            rating = "Bad"
         elif(rolled == 1):
             rating = "LOL"
 
