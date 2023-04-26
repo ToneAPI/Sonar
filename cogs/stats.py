@@ -30,9 +30,15 @@ class Stats(commands.Cog):
                 botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills: " + str(killstats['kills']) + '\n' )
                 
                 if(weaponid != ""):
-                    botmessage += str("Deaths: " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon: " + message2) + '\n' + str(str("KD with weapon: " + str("{:0.2f}".format(killstats['kills']/killstats['deaths_while_equipped']))))
+                    deaths=killstats['deaths_while_equipped']
+                    if(deaths == 0):
+                        deaths = 1;
+                    botmessage += str("Deaths: " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon: " + message2) + '\n' + str(str("KD with weapon: " + str("{:0.2f}".format(killstats['kills']/deaths))))
                 else:
-                    botmessage = botmessage + str("Deaths: " + str(killstats['deaths'])) + '\n' + str("KD: " + str("{:0.2f}".format(killstats['kills']/killstats['deaths'])))
+                    deaths=killstats['deaths']
+                    if(deaths == 0):
+                        deaths = 1;
+                    botmessage = botmessage + str("Deaths: " + str(killstats['deaths'])) + '\n' + str("KD: " + str("{:0.2f}".format(killstats['kills']/deaths)))
                 print(botmessage)
             else:
                 botmessage = "This player doesnt exist"
