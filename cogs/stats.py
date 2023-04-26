@@ -14,38 +14,35 @@ class Stats(commands.Cog):
     @commands.command()
     async def stats(self, ctx, message="any player", message2="any weapon"):  
         if(message != "any player"):
+            weaponid = ""
             if(message2 != "any weapon"):
                 message = message[:-1]
-                print(message + "\n"  + message2)
                 weaponid = self.getweaponid(message2)
             
             playerid = self.getplayerid(message);
 
             if (playerid != ""):
-                print("test: " + weaponid)
                 payload = {'player': playerid, 'weapon': weaponid}
                 response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
                 killstats = response[playerid]
-                print(response)
-                botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills: " + str(killstats['kills']) + '\n' )
+                botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills     : " + str(killstats['kills']) + '\n' )
                 
                 if(weaponid != ""):
                     deaths=killstats['deaths_while_equipped']
                     if(deaths == 0):
                         deaths = 1;
-                    botmessage += str("Deaths: " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon: " + message2) + '\n' + str(str("KD with weapon: " + str("{:0.2f}".format(killstats['kills']/deaths))))
+                    botmessage += str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + message2) + '\n' + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths))))
                 else:
                     deaths=killstats['deaths']
                     if(deaths == 0):
                         deaths = 1;
-                    botmessage = botmessage + str("Deaths: " + str(killstats['deaths'])) + '\n' + str("KD: " + str("{:0.2f}".format(killstats['kills']/deaths)))
-                print(botmessage)
+                    botmessage = botmessage + str("Deaths    : " + str(killstats['deaths'])) + '\n' + str("KD        : " + str("{:0.2f}".format(killstats['kills']/deaths)))
             else:
                 botmessage = "This player doesnt exist"
         else:
             botmessage = "No name given"
 
-        await ctx.send(botmessage)
+        await ctx.send(f'```{botmessage}```')
 
     def getplayerid(self, playername):
         response = requests.get('https://tone.sleepycat.date/v2/client/players').json()
@@ -57,7 +54,6 @@ class Stats(commands.Cog):
                 playerid = i
                 break
 
-        print(playername + ": " + str(playerid))
         return playerid
 
     def getweaponid(self, weaponname):
@@ -117,7 +113,7 @@ class Stats(commands.Cog):
                 if (weaponname.lower() == weapon_dict[i]):
                     weaponid = i
                     break
-        print(weaponname + ', '+ weaponid)
+
         return weaponid
 
 async def setup(client):
