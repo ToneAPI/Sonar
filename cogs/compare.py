@@ -28,15 +28,11 @@ class Compare(commands.Cog):
         await ctx.send(listofplayerids)
     
     def getplayerid(self, playername):
-        response = requests.get('https://tone.sleepycat.date/v2/client/players').json()
-        r = response.keys()
         playerid = ""
-        for i in r:
-            p = response[i]['username']
-            if (p.lower() == playername.lower()):
-                playerid = i
-                break
-        return playerid    
+        payload = str("username=") + playername
+        response = requests.get('https://northstar.tf/accounts/lookup_uid', params=payload).json()
+        playerid = response['matches'][0]
+        return str(playerid)
 
 async def setup(client):
     await client.add_cog(Compare(client))
