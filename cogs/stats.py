@@ -18,7 +18,7 @@ class Stats(commands.Cog):
             if(message2 != "any weapon"):
                 message = message[:-1]
                 weaponid = self.getweaponid(message2)
-
+            playerid = ""
             playerid = self.getplayerid(message);
             if (playerid != ""):
                 payload = {'player': playerid, 'weapon': weaponid}
@@ -47,7 +47,8 @@ class Stats(commands.Cog):
         playerid = ""
         payload = str("username=") + playername
         response = requests.get('https://northstar.tf/accounts/lookup_uid', params=payload).json()
-        playerid = response['matches'][0]
+        if (response['matches'] != None):
+            playerid = response['matches'][0]
         return str(playerid)
 
     def getweaponid(self, weaponname):
