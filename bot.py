@@ -5,6 +5,7 @@ import asyncio
 from discordtoken import discordtoken
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
+client.remove_command('help')
 
 @client.event
 async def on_ready():
