@@ -56,7 +56,7 @@ class Leaderboard(commands.Cog):
         response = requests.get('https://tone.sleepycat.date/v2/client/weapons').json()
         r = response.keys()
         
-        weapon_dict = {'execution': 'human_execution',
+        weapon_dict = {'human_execution': 'execution',
                     'mp_weapon_car': 'car',
                     'mp_weapon_defender': 'charge_rifle',
                     'mp_weapon_doubletake': 'double_take',
