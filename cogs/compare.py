@@ -34,10 +34,13 @@ class Compare(commands.Cog):
         for p in listofplayerids:
             stats = self.getstats(p, weaponid, weaponname)
             listofstats.append(stats)
-
-        divider = str("\n --------------- \n")
-        botmessage = divider.join(listofstats)
-        await ctx.send(f'```{botmessage}```')
+        if ("".join(listofstats) != ""):
+            divider = str("\n --------------- \n")
+            botmessage = divider.join(listofstats)
+            await ctx.send(f'```{botmessage}```')
+        else: 
+            botmessage = "No existing player found in the given list"
+            await ctx.send(f'```{botmessage}```')
     
     def getplayerid(self, playername):
         playerid = "None"

@@ -12,19 +12,28 @@ class Stats(commands.Cog):
         print("stats.py is ready")
 
     @commands.command()
-    async def stats(self, ctx, message="any player", message2="any weapon"):  
+    async def stats(self, ctx, message="any player", message2="any weapon", *message3):  
         if(message != "any player"):
             weaponid = ""
+
+            if(message3 != ()):
+                server = self.getserver(" ".join(message3))
+                servermessage = server
+            else: 
+                server = ""
+                servermessage = "all servers"
+                
             if(message2 != "any weapon"):
                 message = message[:-1]
                 weaponid = self.getweaponid(message2)
             playerid = ""
             playerid = self.getplayerid(message);
             if (playerid != ""):
-                payload = {'player': playerid, 'weapon': weaponid}
+                payload = {'player': playerid, 'weapon': weaponid, 'server': server}
                 response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
                 killstats = response[playerid]
-                botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills     : " + str(killstats['kills']) + '\n' )
+
+                botmessage = str("Stats for " + servermessage + "\n" + "---------------------" + "\n") + str("Playername: " + killstats['username'] + '\n' + "Kills     : " + str(killstats['kills']) + '\n' )
                 
                 if(weaponid != ""):
                     deaths=killstats['deaths_while_equipped']
@@ -110,6 +119,17 @@ class Stats(commands.Cog):
                     break
 
         return weaponid
+
+    def getserver(self, snippet):
+        server = ""
+        response = requests.get('https://tone.sleepycat.date/v2/client/servers').json()
+        servers = response.keys()
+
+        for i in servers:
+            if(snippet in i.lower()):
+                server = i
+
+        return server
 
 async def setup(client):
     await client.add_cog(Stats(client))
