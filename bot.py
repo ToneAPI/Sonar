@@ -25,8 +25,8 @@ async def slashload():
 @client.command()
 async def sync(ctx):
     if ctx.message.author.id == 262672220260663297:
-        await client.tree.sync(guild=discord.Object(id=1100149380763373608))
-        print('Command tree synced.')
+        synced = await client.tree.sync()
+        print(f'You synced {str(len(synced))} commands')
     else:
         await ctx.send('You must be the botowner to use this command!')
                                         
