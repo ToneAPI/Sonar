@@ -11,6 +11,7 @@ class Roll(commands.Cog):
         print("roll.py is ready")
 
     @commands.command()
+    @commands.cooldown(1, 600, commands.BucketType.user)
     async def roll(self, ctx):
         rolled = random.randint(1,100)
         rating = ""
@@ -38,6 +39,12 @@ class Roll(commands.Cog):
 
         await ctx.send(message)
 
+    @roll.error
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            time = round(error.retry_after/60)
+            message = f"This command is on cooldown, the cooldown ends in {time} minutes"
+            await ctx.send(message)
 
 async def setup(client):
     await client.add_cog(Roll(client))

@@ -13,6 +13,7 @@ class Stats(commands.Cog):
 
     @commands.command(aliases=["compare"])
     async def stats(self, ctx, *message):
+        error = False
         players = []
         servers = []
         server = ""
@@ -21,6 +22,7 @@ class Stats(commands.Cog):
      
         if(message == ()):
             await ctx.send("```No player given```")
+            error = True
 
         for i in message:
             item = i.replace(",", "")
@@ -42,7 +44,8 @@ class Stats(commands.Cog):
             else:
                 server = servers[0]
 
-        if(len(players) == 0):
+        if(len(players) == 0 and error == False):
+            error = True
             await ctx.send("```No existing player found, check if the name is correct or has changed```")
 
         list_of_stats = []
