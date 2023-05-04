@@ -212,7 +212,7 @@ class Leaderboard(commands.Cog):
                 stat = str("{:0.2f}".format(j))
             if(easyfilter):
                 stat = str(j)
-            botmessage = botmessage + str(str(counter)+ " - " + i + " : "+ stat + "\n")
+            botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{i :<15}" + " : "+ f"{stat:<8}" + "\n")
             counter= counter+1 
 
         return botmessage
