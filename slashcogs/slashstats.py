@@ -1,52 +1,42 @@
-from urllib import request
 import discord
 from discord.ext import commands
+from discord import app_commands
 import requests
 
-class Stats(commands.Cog):
+class SlashStats(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("stats.py is ready")
+        print("SlashStats.py is ready")
 
-    @commands.command(aliases=["compare"])
-    async def stats(self, ctx, *message):
+    @app_commands.command(name="stats", description="Gives the stats of the selected player/players filtered by weapon and server, if given")
+    @app_commands.describe(playernames = "Ingame name of the player or players", weapon = "Ingame Weaponname", servername = "A Tone supported server")
+    @app_commands.rename(playernames = "player", servername = "server")
+    async def stats(self, interaction: discord.Interaction, playernames : str, weapon : str = "", servername : str = ""):
         error = False
+        playernames = playernames.replace(",", "")
+        playernames = playernames.split(" ")
         players = []
-        servers = []
         server = ""
         weaponid= ""
         weaponname= ""
      
-        if(message == ()):
-            await ctx.send("```No player given```")
-            error = True
+        print(playernames)
 
-        for i in message:
-            item = i.replace(",", "")
-            function_dict = self.message_handler(item)
-            if(function_dict['player'] != None):
-                players.append(function_dict['player'])
-            if(function_dict['weapon'] != None):
-                weaponname = function_dict["weapon"][1]
-                weaponid= function_dict['weapon'][0]
-            if(function_dict['server'] != None):
-                servers.append(function_dict['server']) 
-
-        if(len(servers) != 0):           
-            if(len(servers) > 1):   
-                for i in servers:
-                    if(i in " ".join(message)):
-                        server = i
-                        break   
-            else:
-                server = servers[0]
+        for i in playernames:
+            playerid = self.getplayerid(i)
+            if(playerid != ""):
+                players.append(playerid)
+        if(weapon != ""):
+            weaponid, weaponname = self.getweaponid(weapon)
+        if(servername != ""):
+            server = self.getserver(servername)
 
         if(len(players) == 0 and error == False):
             error = True
-            await ctx.send("```No existing player found, check if the name is correct or has changed```")
+            await interaction.response.send_message("```No existing player found, check if the name is correct or has changed```")
 
         list_of_stats = []
         for i in players:
@@ -61,34 +51,8 @@ class Stats(commands.Cog):
             divider = str("\n --------------------- \n")
             botmessage = botmessage + divider.join(list_of_stats)
     
-        await ctx.send(f'```{botmessage}```')
+        await interaction.response.send_message(f'```{botmessage}```')
 
-    def message_handler(self, message):
-        player = False
-        weapon = False
-        server = False
-        return_message = {"player": None, "weapon": None, "server": None}
-
-        playerid = self.getplayerid(message)
-        if(playerid != ""):
-            player = True
-
-        weaponid, weaponname = self.getweaponid(message)
-        if(weaponid != ""):
-            weapon = True
-
-        servername = self.getserver(message)
-        if(servername != ""):
-            server = True
-
-        if(server):
-            return_message["server"] = servername
-        if(player):
-            return_message["player"] = playerid
-        if(weapon):
-            return_message["weapon"] = [weaponid, weaponname]
-
-        return return_message
 
     def getplayerid(self, playername):
         playerid = ""
@@ -153,6 +117,8 @@ class Stats(commands.Cog):
                 weaponid = weapons[weapon]
                 weaponname = weapon
                 break
+        if(weaponid == ""):
+            weaponname = ""
 
         return weaponid, weaponname
 
@@ -193,7 +159,26 @@ class Stats(commands.Cog):
             botmessage = botmessage + str("Deaths    : " + str(killstats['deaths'])) + '\n' + str("KD        : " + str("{:0.2f}".format(killstats['kills']/deaths)))
 
         return botmessage
+    
+    @stats.autocomplete("weapon")
+    async def autocomplete_weapon(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        data = []
+        weaponlist = ['execution', 'car', 'charge rifle', 'double take', 'epg', 'volt', 'lstar', 'r97', 'r-201', 'smart pistol', 'kraber', 'flatline', 're-45 auto', 'alternator', 'frag grenade', 'g2', 'spitfire', 'smr', 'softball', 'firestar', 'melee', 'masstiff', 'mgl', 'r-101', 'wingman', 'invalid', 'thunderbolt', 'dmr', 'electric smoke', 'cold war', 'satchel', 'eva-8 auto', 'mozambique', 'wingman elite', 'gravity star', 'pulse blade', 'archer', 'outOfBounds', 'mind crime', 'devotion', 'fall', 'p2016', 'arc grenade', 'hemlok', 'phase shift']
+        for weapon_choice in weaponlist:
+            if(current.lower() in weapon_choice.lower()):
+                data.append(app_commands.Choice(name=weapon_choice, value=weapon_choice))
+        return data
+    
+    @stats.autocomplete("servername")
+    async def autocomplete_server(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        data = []
+        servers = requests.get("https://tone.sleepycat.date/v2/client/servers").json()
+        for server_choice in servers.keys():
+            if(current.lower() in server_choice.lower()):
+                data.append(app_commands.Choice(name=server_choice, value=server_choice))
+        return data
+        
 
 async def setup(client):
-    await client.add_cog(Stats(client))
+    await client.add_cog(SlashStats(client))
 

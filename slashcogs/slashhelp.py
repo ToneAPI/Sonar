@@ -1,16 +1,17 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 
-class Help(commands.Cog):
+class SlashHelp(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Help.py is ready")
+        print("SlashHelp.py is ready")
 
-    @commands.command()
-    async def help(self, ctx, message="all"):
+    @app_commands.command(name="help", description= "Gives information about the commands in this bot")
+    async def help(self, interaction: discord.Interaction, message:str ="all"):
         botmessage = ""
         if(message == "all"):
             botmessage = str("To get further information about a command do: \n!help <command> \n------------------- \n" +
@@ -49,8 +50,8 @@ class Help(commands.Cog):
         else:
             botmessage = "Cant help you with this"
             
-        await ctx.send(f"```{botmessage}```")
+        await interaction.response.send_message(f"```{botmessage}```")
 
 
 async def setup(client):
-    await client.add_cog(Help(client))
+    await client.add_cog(SlashHelp(client))

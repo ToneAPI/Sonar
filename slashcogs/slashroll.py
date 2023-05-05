@@ -1,18 +1,19 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import random
 
-class Roll(commands.Cog):
+class SlashRoll(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("roll.py is ready")
+        print("SlashRoll.py is ready")
 
-    @commands.command()
-    @commands.cooldown(1, 600, commands.BucketType.user)
-    async def roll(self, ctx):
+    @app_commands.command(name="roll", description="Rolls a number between 1 and 100 with a rating")
+    @app_commands.checks.cooldown(1, 600)
+    async def slashroll(self, interaction: discord.Interaction):
         rolled = random.randint(1,100)
         rating = ""
 
@@ -37,14 +38,15 @@ class Roll(commands.Cog):
 
         message = "You rolled " + str(rolled) + ", " + rating
 
-        await ctx.send(message)
+        await interaction.response.send_message(message)
 
-    @roll.error
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
+    @slashroll.error
+    async def on_command_error(self, interaction: discord.Interaction, error : app_commands.AppCommandError):
+        if isinstance(error, app_commands.CommandOnCooldown):
             time = round(error.retry_after/60)
             message = f"This command is on cooldown, the cooldown ends in {time} minutes"
-            await ctx.send(message)
+            await interaction.response.send_message(message)
+
 
 async def setup(client):
-    await client.add_cog(Roll(client))
+    await client.add_cog(SlashRoll(client))
