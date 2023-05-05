@@ -12,6 +12,7 @@ class SlashRoll(commands.Cog):
         print("SlashRoll.py is ready")
 
     @app_commands.command(name="roll", description="Rolls a number between 1 and 100 with a rating")
+    @app_commands.checks.cooldown(1, 600)
     async def slashroll(self, interaction: discord.Interaction):
         rolled = random.randint(1,100)
         rating = ""
@@ -38,6 +39,13 @@ class SlashRoll(commands.Cog):
         message = "You rolled " + str(rolled) + ", " + rating
 
         await interaction.response.send_message(message)
+
+    @slashroll.error
+    async def on_command_error(self, interaction: discord.Interaction, error : app_commands.AppCommandError):
+        if isinstance(error, app_commands.CommandOnCooldown):
+            time = round(error.retry_after/60)
+            message = f"This command is on cooldown, the cooldown ends in {time} minutes"
+            await interaction.response.send_message(message)
 
 
 async def setup(client):
