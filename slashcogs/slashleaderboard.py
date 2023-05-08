@@ -97,8 +97,11 @@ class SlashLeaderboard(commands.Cog):
 
         for i in servers:
             if(snippet.lower() in i.lower()):
-                server = i
-                break
+                if(snippet.lower()== i.lower()):
+                    server = i
+                    break
+                else:
+                    server = i
 
         return server
     
@@ -128,10 +131,12 @@ class SlashLeaderboard(commands.Cog):
                     checked = stats[str(board)]
                 if(hardfilter):
                     if(board.lower() == "kd"):
-                        if (stats['deaths'] == 0):
-                            deaths = 1
+                        if(weaponid != ""):
+                            deaths = stats['deaths_while_equipped']
                         else:
                             deaths = stats['deaths']
+                        if(deaths == 0):
+                            deaths = deaths + 1
                         checked = round(stats["kills"] / deaths, 2)
                     if(board.lower() == "avgd"):
                         if(stats["kills"] == 0):
@@ -165,7 +170,7 @@ class SlashLeaderboard(commands.Cog):
                 stat = str("{:0.2f}".format(j))
             if(easyfilter):
                 stat = str(j)
-            botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{i :<15}" + " : "+ f"{stat:<8}" + "\n")
+            botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{i :<20}" + " : "+ f"{stat:<8}" + "\n")
             counter= counter+1 
 
         return botmessage
