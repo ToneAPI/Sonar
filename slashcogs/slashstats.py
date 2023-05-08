@@ -129,8 +129,11 @@ class SlashStats(commands.Cog):
 
         for i in servers:
             if(snippet.lower() in i.lower()):
-                server = i
-                break
+                if(snippet.lower()== i.lower()):
+                    server = i
+                    break
+                else:
+                    server = i
 
         return server
 
@@ -151,7 +154,9 @@ class SlashStats(commands.Cog):
             deaths=killstats['deaths_while_equipped']
             if(deaths == 0):
                 deaths = 1;
-            botmessage += str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) + '\n' + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths))))
+            botmessage += str(str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) +
+                          '\n' + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths)))) + '\n' + str("Deaths to : " + str(killstats['deaths'])))
+
         else:
             deaths=killstats['deaths']
             if(deaths == 0):

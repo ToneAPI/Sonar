@@ -14,7 +14,7 @@ class Stats(commands.Cog):
     @commands.command(aliases=["compare"])
     async def stats(self, ctx, *message):
         error = False
-        players = []
+        players = {}
         servers = []
         server = ""
         weaponid= ""
@@ -28,17 +28,21 @@ class Stats(commands.Cog):
             item = i.replace(",", "")
             function_dict = self.message_handler(item)
             if(function_dict['player'] != None):
-                players.append(function_dict['player'])
+                players[item] = self.getplayerid(item)
             if(function_dict['weapon'] != None):
                 weaponname = function_dict["weapon"][1]
                 weaponid= function_dict['weapon'][0]
             if(function_dict['server'] != None):
                 servers.append(function_dict['server']) 
 
-        if(len(servers) != 0):           
-            if(len(servers) > 1):   
+        servers.append(self.getserver("", " ".join(message)))
+
+        if(len(servers) != 0 and len(message) != 1):     
+            if(len(message) == 2 and weaponid != ""):
+                server = ""
+            elif(len(servers) > 1):   
                 for i in servers:
-                    if(i in " ".join(message)):
+                    if(i.lower() in " ".join(message).lower()):
                         server = i
                         break   
             else:
@@ -49,9 +53,10 @@ class Stats(commands.Cog):
             await ctx.send("```No existing player found, check if the name is correct or has changed```")
 
         list_of_stats = []
-        for i in players:
-            stats = self.getstats(playerid=i,weaponid=weaponid, weaponname=weaponname, server=server) 
-            list_of_stats.append(stats)
+        for i in players.keys():
+            if(i.lower() not in server.lower()):
+                stats = self.getstats(playerid=players[i],weaponid=weaponid, weaponname=weaponname, server=server) 
+                list_of_stats.append(stats)
 
         if ("".join(list_of_stats) != ""):
             if(server != ""):
@@ -156,13 +161,15 @@ class Stats(commands.Cog):
 
         return weaponid, weaponname
 
-    def getserver(self, snippet):
+    def getserver(self, snippet, fullmessage = ""):
         server = ""
         response = requests.get('https://tone.sleepycat.date/v2/client/servers').json()
         servers = response.keys()
 
         for i in servers:
             if(snippet.lower() in i.lower()):
+                server = i
+            if(i.lower() in fullmessage.lower()):
                 server = i
                 break
 
@@ -185,7 +192,8 @@ class Stats(commands.Cog):
             deaths=killstats['deaths_while_equipped']
             if(deaths == 0):
                 deaths = 1;
-            botmessage += str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) + '\n' + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths))))
+            botmessage += str(str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) + '\n' 
+                       + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths)))+ '\n' + str("Deaths to : " + str(killstats['deaths']))))
         else:
             deaths=killstats['deaths']
             if(deaths == 0):
