@@ -1,4 +1,5 @@
 from urllib import request
+import aiohttp
 import discord
 from discord.ext import commands
 import requests
@@ -19,34 +20,31 @@ class Stats(commands.Cog):
         server = ""
         weaponid= ""
         weaponname= ""
-     
+
         if(message == ()):
             await ctx.send("```No player given```")
             error = True
 
-        for i in message:
-            item = i.replace(",", "")
-            function_dict = self.message_handler(item)
-            if(function_dict['player'] != None):
-                players[item] = self.getplayerid(item)
-            if(function_dict['weapon'] != None):
-                weaponname = function_dict["weapon"][1]
-                weaponid= function_dict['weapon'][0]
-            if(function_dict['server'] != None):
-                servers.append(function_dict['server']) 
+        message = " ".join(message)
+        message = message.split(",")
 
-        servers.append(self.getserver("", " ".join(message)))
+        for item in message:
+            item = item.strip()
+            if(item != ""):
+                function_dict = await self.message_handler(item)
 
-        if(len(servers) != 0 and len(message) != 1):     
-            if(len(message) == 2 and weaponid != ""):
-                server = ""
-            elif(len(servers) > 1):   
-                for i in servers:
-                    if(i.lower() in " ".join(message).lower()):
-                        server = i
-                        break   
-            else:
-                server = servers[0]
+                if(function_dict['player'] != None):
+                    players[item] = function_dict['player']
+
+                if(function_dict['weapon'] != None and weaponid == "" and weaponname == ""):
+                    weaponname = function_dict["weapon"][1]
+                    weaponid= function_dict['weapon'][0]
+
+                if(function_dict['server'] != None and item not in players.keys()):
+                    servers.append(function_dict['server']) 
+
+        if(len(servers) >= 1):
+             server = servers[0]
 
         if(len(players) == 0 and error == False):
             error = True
@@ -54,8 +52,7 @@ class Stats(commands.Cog):
 
         list_of_stats = []
         for i in players.keys():
-            if(i.lower() not in server.lower()):
-                stats = self.getstats(playerid=players[i],weaponid=weaponid, weaponname=weaponname, server=server) 
+                stats = await self.getstats(playerid=players[i],weaponid=weaponid, weaponname=weaponname, server=server) 
                 list_of_stats.append(stats)
 
         if ("".join(list_of_stats) != ""):
@@ -68,13 +65,13 @@ class Stats(commands.Cog):
     
         await ctx.send(f'```{botmessage}```')
 
-    def message_handler(self, message):
+    async def message_handler(self, message):
         player = False
         weapon = False
         server = False
         return_message = {"player": None, "weapon": None, "server": None}
 
-        playerid = self.getplayerid(message)
+        playerid = await self.getplayerid(message)
         if(playerid != ""):
             player = True
 
@@ -82,7 +79,7 @@ class Stats(commands.Cog):
         if(weaponid != ""):
             weapon = True
 
-        servername = self.getserver(message)
+        servername = await self.getserver(message)
         if(servername != ""):
             server = True
 
@@ -95,13 +92,15 @@ class Stats(commands.Cog):
 
         return return_message
 
-    def getplayerid(self, playername):
+    async def getplayerid(self, playername):
         playerid = ""
-        payload = str("username=") + playername
-        response = requests.get('https://northstar.tf/accounts/lookup_uid', params=payload).json()
-        if (response['matches'] != None):
-            playerid = response['matches'][0]
-            return str(playerid)
+        payload = str(f"?username={playername}")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'https://northstar.tf/accounts/lookup_uid{payload}') as r:
+                response = await r.json()
+                if (response['matches'] != None and response['matches'] != []):
+                    playerid = response['matches'][0]
+                    return str(playerid)
 
     def getweaponid(self, weaponname):
         weapons ={
@@ -161,28 +160,34 @@ class Stats(commands.Cog):
 
         return weaponid, weaponname
 
-    def getserver(self, snippet, fullmessage = ""):
+    async def getserver(self, snippet):
         server = ""
-        response = requests.get('https://tone.sleepycat.date/v2/client/servers').json()
-        servers = response.keys()
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://tone.sleepycat.date/v2/client/servers') as r:
+                response = await r.json()
+                servers = response.keys()
 
         for i in servers:
-            if(snippet.lower() in i.lower()):
-                server = i
-            if(i.lower() in fullmessage.lower()):
+            if(snippet.lower() == i.lower()):
                 server = i
                 break
+            elif(snippet.lower() in i.lower()):
+                 server = i
 
         return server
 
-    def getstats(self, playerid, weaponid = "", weaponname = "", server = ""):
+    async def getstats(self, playerid, weaponid = "", weaponname = "", server = ""):
         payload = {'player': playerid, 'weapon': weaponid, 'server': server}
-        response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
-        if(response == {}):
-             errorresponse = requests.get("https://northstar.tf/accounts/get_username", params={"uid": playerid}).json()
-             if(errorresponse['matches'] != None):
-                playername = errorresponse['matches'][0]
-                return str("No stats found for player: " + playername)
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:
+                response = await r.json()
+                if(response == {}):
+                    async with aiohttp.ClientSession() as errorsession:
+                        async with errorsession.get("https://northstar.tf/accounts/get_username", params={"uid": playerid}) as Er:
+                            errorresponse = await Er.json()
+                            if(errorresponse['matches'] != None):
+                                playername = errorresponse['matches'][0]
+                                return str("No stats found for player: " + playername)
         
         killstats = response[str(playerid)]
 
@@ -201,6 +206,7 @@ class Stats(commands.Cog):
             botmessage = botmessage + str("Deaths    : " + str(killstats['deaths'])) + '\n' + str("KD        : " + str("{:0.2f}".format(killstats['kills']/deaths)))
 
         return botmessage
+
 
 async def setup(client):
     await client.add_cog(Stats(client))
