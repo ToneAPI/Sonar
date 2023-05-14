@@ -1,3 +1,4 @@
+import asyncio
 from urllib import request
 import aiohttp
 import discord
@@ -15,94 +16,76 @@ class Stats(commands.Cog):
     @commands.command(aliases=["compare"])
     async def stats(self, ctx, *message):
         error = False
-        players = {}
-        servers = []
         server = ""
-        weaponid= ""
-        weaponname= ""
+        weaponid = ""
+        weaponname = ""
 
         if(message == ()):
-            await ctx.send("```No player given```")
             error = True
+            await ctx.send("```No player given```")
+            return
 
-        message = " ".join(message)
-        message = message.split(",")
 
-        for item in message:
-            item = item.strip()
-            if(item != ""):
-                function_dict = await self.message_handler(item)
-
-                if(function_dict['player'] != None):
-                    players[item] = function_dict['player']
-
-                if(function_dict['weapon'] != None and weaponid == "" and weaponname == ""):
-                    weaponname = function_dict["weapon"][1]
-                    weaponid= function_dict['weapon'][0]
-
-                if(function_dict['server'] != None and item not in players.keys()):
-                    servers.append(function_dict['server']) 
-
-        if(len(servers) >= 1):
-             server = servers[0]
+        async with aiohttp.ClientSession() as session:
+            players, residue = await self.get_all_playerids(session, message)
+            for item in residue:
+                if(server == ""):
+                    server = await self.getserver(item)
+                if(weaponid == ""):
+                    weaponid, weaponname = self.getweaponid(item)
 
         if(len(players) == 0 and error == False):
             error = True
-            await ctx.send("```No existing player found, check if the name is correct or has changed```")
+            await ctx.send("```No existing player found, check if the name is correct or has changed\n\n*Note you need to split filters with a comma```")
+            return
 
-        list_of_stats = []
-        for i in players.keys():
-                stats = await self.getstats(playerid=players[i],weaponid=weaponid, weaponname=weaponname, server=server) 
-                list_of_stats.append(stats)
-
-        if ("".join(list_of_stats) != ""):
-            if(server != ""):
-                botmessage = str("Stats for " + server + "\n" + "---------------------" + "\n") 
-            else:
-                botmessage = str("Stats for all servers\n" + "---------------------" + "\n") 
-            divider = str("\n --------------------- \n")
-            botmessage = botmessage + divider.join(list_of_stats)
-    
-        await ctx.send(f'```{botmessage}```')
-
-    async def message_handler(self, message):
-        player = False
-        weapon = False
-        server = False
-        return_message = {"player": None, "weapon": None, "server": None}
-
-        playerid = await self.getplayerid(message)
-        if(playerid != ""):
-            player = True
-
-        weaponid, weaponname = self.getweaponid(message)
-        if(weaponid != ""):
-            weapon = True
-
-        servername = await self.getserver(message)
-        if(servername != ""):
-            server = True
-
-        if(server):
-            return_message["server"] = servername
-        if(player):
-            return_message["player"] = playerid
-        if(weapon):
-            return_message["weapon"] = [weaponid, weaponname]
-
-        return return_message
-
-    async def getplayerid(self, playername):
-        playerid = ""
-        payload = str(f"?username={playername}")
         async with aiohttp.ClientSession() as session:
-            async with session.get(f'https://northstar.tf/accounts/lookup_uid{payload}') as r:
+            stats = await self.get_allplayer_stats(session, players, weaponid, weaponname, server)
+
+            if(server != ""):
+                botmessage = str("Stats for " + server + "\n" + "-----------------------" + "\n") 
+            else:
+                botmessage = str("Stats for all servers\n" + "-----------------------" + "\n")
+
+            botmessage = botmessage + str("\n-----------------------\n".join(stats))
+
+        await ctx.send(f"```{botmessage}```")
+
+
+    async def get_all_playerids(self, s, playernames):
+     players = []
+     residue = []
+     tasks = []
+     for playername in playernames:
+          task = asyncio.create_task(self.getplayerid(s, playername),name=playername)
+          tasks.append(task)
+     res = await asyncio.gather(*tasks)
+     for player in res:
+           player = player.split(":")
+           playername = player[0].strip()
+           playerid = player[1].strip()
+           if(playerid != "None" and playername not in players):
+                players.append(playerid)
+           else:
+                residue.append(playername)            
+
+     return players, residue
+
+    async def getplayerid(self,s,playername):
+        playerid = ""
+        playername = playername.replace(",", "")
+        payload = str(f"?username={playername}")
+        async with s.get(f'https://northstar.tf/accounts/lookup_uid{payload}') as r:
+                
                 response = await r.json()
                 if (response['matches'] != None and response['matches'] != []):
                     playerid = response['matches'][0]
-                    return str(playerid)
-
-    def getweaponid(self, weaponname):
+                    player = str(f"{playername.lower()}: {playerid}")
+                else:
+                    player = str(f"{playername.lower()}: {None}")
+                return player
+        
+    def getweaponid(self,weaponname):
         weapons ={
                     "execution": "human_execution", 
                     "car": "mp_weapon_car",
@@ -176,34 +159,40 @@ class Stats(commands.Cog):
 
         return server
 
-    async def getstats(self, playerid, weaponid = "", weaponname = "", server = ""):
-        payload = {'player': playerid, 'weapon': weaponid, 'server': server}
-        async with aiohttp.ClientSession() as session:
-            async with session.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:
-                response = await r.json()
-                if(response == {}):
-                    async with aiohttp.ClientSession() as errorsession:
-                        async with errorsession.get("https://northstar.tf/accounts/get_username", params={"uid": playerid}) as Er:
-                            errorresponse = await Er.json()
-                            if(errorresponse['matches'] != None):
-                                playername = errorresponse['matches'][0]
-                                return str("No stats found for player: " + playername)
-        
-        killstats = response[str(playerid)]
+    async def get_allplayer_stats(self, s, playerids, weaponid = "", weaponname= "",server = ""):
+     tasks = []
+     for playerid in playerids:
+          task = asyncio.create_task(self.getstats(s, playerid, weaponid, weaponname, server), name=playerid)
+          tasks.append(task)
+     res = await asyncio.gather(*tasks)
+     return res
 
-        botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills     : " + str(killstats['kills']) + '\n' )
+    async def getstats(self, s, playerid, weaponid = "", weaponname = "", server = ""):
+        payload = {'player': playerid, 'weapon': weaponid, 'server': server}
+        async with s.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:
+            response = await r.json()
+            if(response == {}):
+                async with s.get("https://northstar.tf/accounts/get_username", params={"uid": playerid}) as Er:
+                    errorresponse = await Er.json()
+                    if(errorresponse['matches'] != None):
+                        playername = errorresponse['matches'][0]
+                        return str("No stats found for player: " + playername)
+        
+            killstats = response[str(playerid)]
+
+            botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills     : " + str(killstats['kills']) + '\n' )
               
-        if(weaponid != ""):
-            deaths=killstats['deaths_while_equipped']
-            if(deaths == 0):
-                deaths = 1;
-            botmessage += str(str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) + '\n' 
+            if(weaponid != ""):
+                deaths=killstats['deaths_while_equipped']
+                if(deaths == 0):
+                    deaths = 1;
+                botmessage += str(str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) + '\n' 
                        + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths)))+ '\n' + str("Deaths to : " + str(killstats['deaths']))))
-        else:
-            deaths=killstats['deaths']
-            if(deaths == 0):
-                deaths = 1;
-            botmessage = botmessage + str("Deaths    : " + str(killstats['deaths'])) + '\n' + str("KD        : " + str("{:0.2f}".format(killstats['kills']/deaths)))
+            else:
+                deaths=killstats['deaths']
+                if(deaths == 0):
+                    deaths = 1;
+                botmessage = botmessage + str("Deaths    : " + str(killstats['deaths'])) + '\n' + str("KD        : " + str("{:0.2f}".format(killstats['kills']/deaths)))
 
         return botmessage
 
