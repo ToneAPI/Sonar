@@ -112,7 +112,7 @@ class Stats(commands.Cog):
                     "softball": "mp_weapon_softball",
                     "firestar": "mp_weapon_thermite_grenade",
                     "melee": "melee_pilot_emptyhanded",
-                    "masstiff": "mp_weapon_mastiff",
+                    "mastiff": "mp_weapon_mastiff",
                     "mgl": "mp_weapon_mgl",
                     "r-101": "mp_weapon_rspn101_og",
                     "wingman": "mp_weapon_wingman",
