@@ -24,23 +24,28 @@ class Stats(commands.Cog):
             error = True
             await ctx.send("```No player given```")
             return
-
+        
+        message = list(message)
+        message = "".join(message)
+        message = message.split(",")
 
         async with aiohttp.ClientSession() as session:
             players, residue = await self.get_all_playerids(session, message)
-            for item in residue:
-                if(server == ""):
-                    server = await self.getserver(item)
-                if(weaponid == ""):
-                    weaponid, weaponname = self.getweaponid(item)
 
-        if(len(players) == 0 and error == False):
+            for item in residue:
+                if(server == "" and item != None and item != ""):
+                    server = await self.getserver(item)
+                if(weaponid == "" and item != None and item != ""):
+                    weaponid, weaponname = self.getweaponid(item)
+            
+
+        if(len(players.values()) == 0 and error == False):
             error = True
             await ctx.send("```No existing player found, check if the name is correct or has changed\n\n*Note you need to split filters with a comma```")
             return
 
         async with aiohttp.ClientSession() as session:
-            stats = await self.get_allplayer_stats(session, players, weaponid, weaponname, server)
+            stats = await self.get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
 
             if(server != ""):
                 botmessage = str("Stats for " + server + "\n" + "-----------------------" + "\n") 
@@ -53,7 +58,7 @@ class Stats(commands.Cog):
 
 
     async def get_all_playerids(self, s, playernames):
-     players = []
+     players = {}
      residue = []
      tasks = []
      for playername in playernames:
@@ -65,10 +70,9 @@ class Stats(commands.Cog):
            playername = player[0].strip()
            playerid = player[1].strip()
            if(playerid != "None" and playername not in players):
-                players.append(playerid)
+                players[playername] = playerid
            else:
-                residue.append(playername)            
-
+                residue.append(playername) 
      return players, residue
 
     async def getplayerid(self,s,playername):
@@ -151,10 +155,10 @@ class Stats(commands.Cog):
                 servers = response.keys()
 
         for i in servers:
-            if(snippet.lower() == i.lower()):
+            if(snippet.lower() == i.lower().replace(" ", "")):
                 server = i
                 break
-            elif(snippet.lower() in i.lower()):
+            elif(snippet.lower() in i.lower().replace(" ", "")):
                  server = i
 
         return server
