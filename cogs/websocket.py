@@ -20,23 +20,24 @@ class Websocket(commands.Cog):
         self.websocket.cancel()
 
     @tasks.loop(seconds=5)
-    async def websocket(self):
-        global atkerlist
-        global victimlist
-        atkerlist = []
-        victimlist = []
-        uri = "wss://tone.sleepycat.date/v2/client/websocket"
-        async with websockets.connect(uri) as ws:
-            async for message in ws:
-                if (message == "ping"):
-                    print("pong\n")
-                    await ws.send("pong")
-                else:
-                    await self.message_handler(message)
+    async def websocket(self, ws):
+        async for message in ws:
+            if (message == "ping"):
+                print("pong\n")
+                await ws.send("pong")
+            else:
+                await self.message_handler(message)
 
     @websocket.before_loop
     async def before_websocket(self):
         print('waiting... for bot to start. (websocket)')
+        uri = "wss://tone.sleepycat.date/v2/client/websocket"
+        global atkerlist
+        global victimlist
+        atkerlist = []
+        victimlist = []
+        async with websockets.connect(uri) as ws:
+            await self.websocket(ws)
         await self.bot.wait_until_ready()
 
     async def message_handler(self, message):
