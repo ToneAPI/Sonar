@@ -45,16 +45,10 @@ class Stats(commands.Cog):
             return
 
         async with aiohttp.ClientSession() as session:
-            stats = await self.get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
+            botmessage = await self.get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
 
-            if(server != ""):
-                botmessage = str("Stats for " + server + "\n" + "-----------------------" + "\n") 
-            else:
-                botmessage = str("Stats for all servers\n" + "-----------------------" + "\n")
 
-            botmessage = botmessage + str("\n-----------------------\n".join(stats))
-
-        await ctx.send(f"```{botmessage}```")
+        await ctx.send(embed=botmessage)
 
 
     async def get_all_playerids(self, s, playernames):
@@ -89,7 +83,7 @@ class Stats(commands.Cog):
                     player = str(f"{playername.lower()}: {None}")
                 return player
         
-    def getweaponid(self,weaponname):
+    def getweaponid(self,givenweapon):
         weapons ={
                     "execution": "human_execution", 
                     "car": "mp_weapon_car",
@@ -112,7 +106,7 @@ class Stats(commands.Cog):
                     "softball": "mp_weapon_softball",
                     "firestar": "mp_weapon_thermite_grenade",
                     "melee": "melee_pilot_emptyhanded",
-                    "masstiff": "mp_weapon_mastiff",
+                    "mastiff": "mp_weapon_mastiff",
                     "mgl": "mp_weapon_mgl",
                     "r-101": "mp_weapon_rspn101_og",
                     "wingman": "mp_weapon_wingman",
@@ -139,8 +133,9 @@ class Stats(commands.Cog):
                 }
     
         weaponid = ""
+        weaponname = ""
         for weapon in weapons:     
-            if(weaponname.lower() in weapon.lower()):     
+            if(givenweapon.lower() in weapon.lower()):     
                 weaponid = weapons[weapon]
                 weaponname = weapon
                 break
@@ -153,7 +148,6 @@ class Stats(commands.Cog):
             async with session.get('https://tone.sleepycat.date/v2/client/servers') as r:
                 response = await r.json()
                 servers = response.keys()
-
         for i in servers:
             if(snippet.lower() == i.lower().replace(" ", "")):
                 server = i
@@ -164,14 +158,29 @@ class Stats(commands.Cog):
         return server
 
     async def get_allplayer_stats(self, s, playerids, weaponid = "", weaponname= "",server = ""):
-     tasks = []
-     for playerid in playerids:
-          task = asyncio.create_task(self.getstats(s, playerid, weaponid, weaponname, server), name=playerid)
-          tasks.append(task)
-     res = await asyncio.gather(*tasks)
-     return res
+        tasks = []
+        for playerid in playerids:
+            task = asyncio.create_task(self.getstats(s, playerid, weaponid, server), name=playerid)
+            tasks.append(task)
+        res = await asyncio.gather(*tasks)
+        if(server == ""):
+            server = "All"
+        if(weaponname == ""):
+            weaponname = "Any"
 
-    async def getstats(self, s, playerid, weaponid = "", weaponname = "", server = ""):
+        botmessage = discord.Embed(title="Stats", description=f"**Server:** {server}\n**Weapon:** {weaponname}", colour=discord.Colour.orange())
+        if(weaponname != "Any"):
+            if(requests.head(f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png").status_code == 200):
+                botmessage.set_thumbnail(url=f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png")
+            else:
+                botmessage.set_thumbnail(url="https://toneapi.github.io/ToneAPI_webclient/weapons/notfound.png")
+
+        for stats in res:
+            botmessage.add_field(name=f"Stats for {stats['Player']}", value=stats['message'])
+            
+        return botmessage
+
+    async def getstats(self, s, playerid, weaponid = "", server = ""):
         payload = {'player': playerid, 'weapon': weaponid, 'server': server}
         async with s.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:
             response = await r.json()
@@ -180,25 +189,28 @@ class Stats(commands.Cog):
                     errorresponse = await Er.json()
                     if(errorresponse['matches'] != None):
                         playername = errorresponse['matches'][0]
-                        return str("No stats found for player: " + playername)
+                        stats = {"Player": playername, "message": "No stats found for this player."}
+                        return stats
         
             killstats = response[str(playerid)]
 
-            botmessage = str("Playername: " + killstats['username'] + '\n' + "Kills     : " + str(killstats['kills']) + '\n' )
+            botmessage = str("Kills: " + str(killstats['kills']) + '\n' )
               
             if(weaponid != ""):
                 deaths=killstats['deaths_while_equipped']
                 if(deaths == 0):
                     deaths = 1;
-                botmessage += str(str("Deaths    : " + str(killstats['deaths_while_equipped'])) + '\n' + str("Weapon    : " + weaponname) + '\n' 
-                       + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths)))+ '\n' + str("Deaths to : " + str(killstats['deaths']))))
+                botmessage += str(str("Deaths: " + str(killstats['deaths_while_equipped'])) + '\n' + str(str("weapon KD : " + str("{:0.2f}".format(killstats['kills']/deaths)))+ '\n' + str("Deaths to: " + str(killstats['deaths']))))
             else:
                 deaths=killstats['deaths']
                 if(deaths == 0):
                     deaths = 1;
-                botmessage = botmessage + str("Deaths    : " + str(killstats['deaths'])) + '\n' + str("KD        : " + str("{:0.2f}".format(killstats['kills']/deaths)))
+                botmessage = botmessage + str("Deaths: " + str(killstats['deaths'])) + '\n' + str("KD: " + str("{:0.2f}".format(killstats['kills']/deaths)))
 
-        return botmessage
+        stats = {"Player": killstats['username'], "message": botmessage}
+        
+        return stats
+    
 
 
 async def setup(client):

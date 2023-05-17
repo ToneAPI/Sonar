@@ -25,7 +25,7 @@ class Leaderboard(commands.Cog):
             botmessage = "No leaderboard option selected, choose from:\n"
             for i in boards:
                 botmessage = botmessage + i + "\n"
-            await ctx.send(botmessage)
+            await ctx.send(f"```{botmessage}```")
 
         for i in message:
             item = i.replace(",", "")
