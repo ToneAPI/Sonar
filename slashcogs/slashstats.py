@@ -21,8 +21,8 @@ class SlashStats(commands.Cog):
         weaponid = ""
         weaponname = ""
 
-        playernames = playernames.strip()
-        playernames = playernames.split(",")
+        playernames = playernames.replace(",", " ")
+        playernames = playernames.split(" ")
 
         async with aiohttp.ClientSession() as session:
             players = await self.get_all_playerids(session, playernames)
@@ -30,11 +30,10 @@ class SlashStats(commands.Cog):
                 await interaction.response.send_message("```No existing player given.\nIf you put in multiple players make sure to split them with a comma(,)```")
                 return
 
-            if(servername != ""):
-                server = await self.getserver(servername)
-                print(server)
             if(weapon != ""):
                 weaponid, weaponname = self.getweaponid(weapon)
+            if(servername != ""):
+                server = await self.getserver(servername)
 
         async with aiohttp.ClientSession() as session:
             botmessage = await self.get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
@@ -137,10 +136,10 @@ class SlashStats(commands.Cog):
                 response = await r.json()
                 servers = response.keys()
         for i in servers:
-            if(snippet.lower() == i.lower().replace(" ", "")):
+            if(snippet.lower() == i.lower()):
                 server = i
                 break
-            elif(snippet.lower() in i.lower().replace(" ", "")):
+            elif(snippet.lower() in i.lower()):
                  server = i
 
         return server
@@ -219,7 +218,7 @@ class SlashStats(commands.Cog):
             if(current.lower() in server_choice.lower()):
                 data.append(app_commands.Choice(name=server_choice, value=server_choice))
         return data
-        
+    
 
 async def setup(client):
     await client.add_cog(SlashStats(client))
