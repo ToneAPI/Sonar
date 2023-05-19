@@ -121,8 +121,13 @@ class SlashLeaderboard(commands.Cog):
         else:
             hardfilter = True
 
+        if(len(players) < 10):
+            lb_length = len(players)
+        else:
+            lb_length = 10
+
         top10 = {}
-        while(len(top10)<10):
+        while(len(top10)<lb_length):
             current = 0 
             name = ""
             for p in players:

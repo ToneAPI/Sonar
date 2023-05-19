@@ -27,8 +27,14 @@ class Leaderboard(commands.Cog):
                 botmessage = botmessage + i + "\n"
             await ctx.send(f"```{botmessage}```")
 
+        message = list(message)
+        message = "".join(message)
+        message = message.split(",")
+
+        print(message)
+
         for i in message:
-            item = i.replace(",", "")
+            item = i.strip()
             if(item.lower() not in boards):
                 function_dict = self.message_handler(item)
                 if(function_dict['weapon'] != None):
@@ -44,7 +50,9 @@ class Leaderboard(commands.Cog):
             botmessage = "No leaderboard option selected, choose from:\n"
             for i in boards:
                 botmessage = botmessage + i + "\n"
-            await ctx.send(botmessage)
+
+            botmessage = botmessage + "\n*Note you need to split filters with comma's(,)"
+            await ctx.send(f"```{botmessage}```")
 
         servers.append(self.getserver("", " ".join(message)))
         server = ""
@@ -144,9 +152,9 @@ class Leaderboard(commands.Cog):
         servers = response.keys()
 
         for i in servers:
-            if(snippet.lower() in i.lower()):
+            if(snippet.lower() in i.lower().replace(" ", "")):
                 server = i
-            if(i.lower() in fullmessage.lower()):
+            if(i.lower() in fullmessage.lower().replace(" ", "")):
                 server = i
                 break
 
@@ -168,7 +176,13 @@ class Leaderboard(commands.Cog):
         else:
             hardfilter = True
         top10 = {}
-        while(len(top10)<10):
+
+        if(len(players) < 10):
+            lb_length = len(players)
+        else:
+            lb_length = 10
+
+        while(len(top10)<lb_length):
             current = 0 
             name = ""
             for p in players:
