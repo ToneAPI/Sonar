@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import requests
-import time
 
 class Leaderboard(commands.Cog):
     def __init__(self, client):
@@ -165,7 +164,6 @@ class Leaderboard(commands.Cog):
         payload = {"weapon": weaponid, "server": server}
         response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
         players = response.keys()
-        start_time = time.time()
         if(board.lower() == "totald"):
             board = "total_distance"
         elif(board.lower() == "maxd"):
@@ -198,13 +196,7 @@ class Leaderboard(commands.Cog):
         for p in result:
             botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{response[p]['username'] :<20}" + " : "+ f"{str(handler(p)):<8}" + "\n")
             counter= counter+1 
-        print("--- %s seconds ---" % (time.time() - start_time))
         return botmessage
 
 async def setup(client):
     await client.add_cog(Leaderboard(client))
-
-
-
-
-print(Leaderboard(None).getleaderboard('kills'))
