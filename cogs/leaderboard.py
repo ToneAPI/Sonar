@@ -1,6 +1,9 @@
 import discord
 from discord.ext import commands
 import requests
+from Reuse.getServer import getserver
+
+from Reuse.getWeapon import getweaponid
 
 class Leaderboard(commands.Cog):
     def __init__(self, client):
@@ -36,7 +39,7 @@ class Leaderboard(commands.Cog):
         for i in message:
             item = i.strip()
             if(item.lower() not in boards):
-                function_dict = self.message_handler(item)
+                function_dict = await self.message_handler(item)
                 if(function_dict['weapon'] != None):
                     weaponname = function_dict["weapon"][1]
                     weaponid= function_dict['weapon'][0]
@@ -54,7 +57,7 @@ class Leaderboard(commands.Cog):
             botmessage = botmessage + "\n*Note you need to split filters with comma's(,)"
             await ctx.send(f"```{botmessage}```")
 
-        servers.append(self.getserver("", " ".join(message)))
+        servers.append(await getserver("", " ".join(message)))
         server = ""
         if(len(servers) > 1):   
             for i in servers:
@@ -68,16 +71,16 @@ class Leaderboard(commands.Cog):
 
         await ctx.send(f'```{botmessage}```')
 
-    def message_handler(self, message):
+    async def message_handler(self, message):
         weapon = False
         server = False
         return_message = {"weapon": None, "server": None}
 
-        weaponid, weaponname = self.getweaponid(message)
+        weaponid, weaponname = getweaponid(message)
         if(weaponid != ""):
             weapon = True
 
-        servername = self.getserver(message)
+        servername = await getserver(message)
         if(servername != ""):
             server = True
 
@@ -88,77 +91,6 @@ class Leaderboard(commands.Cog):
 
         return return_message
 
-    def getweaponid(self, weaponname):
-        weapons ={
-                    "execution": "human_execution", 
-                    "car": "mp_weapon_car",
-                    "charge rifle": "mp_weapon_defender",
-                    "double take": "mp_weapon_doubletake",
-                    "epg": "mp_weapon_epg",
-                    "volt": "mp_weapon_hemlok_smg",
-                    "lstar": "mp_weapon_lstar",
-                    "r97": "mp_weapon_r97",
-                    "r-201": "mp_weapon_rspn101",
-                    "smart pistol": "mp_weapon_smart_pistol",
-                    "kraber": "mp_weapon_sniper",
-                    "flatline": "mp_weapon_vinson",
-                    "re-45 auto": "mp_weapon_autopistol",
-                    "alternator": "mp_weapon_alternator_smg",
-                    "frag grenade": "mp_weapon_frag_grenade",
-                    "g2": "mp_weapon_g2",
-                    "spitfire": "mp_weapon_lmg",
-                    "smr": "mp_weapon_smr",
-                    "softball": "mp_weapon_softball",
-                    "firestar": "mp_weapon_thermite_grenade",
-                    "melee": "melee_pilot_emptyhanded",
-                    "masstiff": "mp_weapon_mastiff",
-                    "mgl": "mp_weapon_mgl",
-                    "r-101": "mp_weapon_rspn101_og",
-                    "wingman": "mp_weapon_wingman",
-                    "invalid": "invalid",
-                    "thunderbolt": "mp_weapon_arc_launcher",
-                    "dmr": "mp_weapon_dmr",
-                    "electric smoke": "mp_weapon_grenade_electric_smoke",
-                    "cold war": "mp_weapon_pulse_lmg",
-                    "satchel": "mp_weapon_satchel",
-                    "eva-8 auto": "mp_weapon_shotgun",
-                    "mozambique": "mp_weapon_shotgun_pistol",
-                    "wingman elite": "mp_weapon_wingman_n",
-                    "gravity star": "mp_weapon_grenade_gravity",
-                    "pulse blade": "mp_weapon_grenade_sonar",
-                    "archer": "mp_weapon_rocket_launcher",
-                    "outOfBounds": "outOfBounds",
-                    "mind crime": "mind_crime",
-                    "devotion": "mp_weapon_esaw",
-                    "fall": "fall",
-                    "p2016": "mp_weapon_semipistol",
-                    "arc grenade": "mp_weapon_grenade_emp",
-                    "hemlok": "mp_weapon_hemlok",
-                    "phase shift": "phase_shift"
-                }
-    
-        weaponid = ""
-        for weapon in weapons:     
-            if(weaponname.lower() in weapon.lower()):     
-                weaponid = weapons[weapon]
-                weaponname = weapon
-                break
-
-        return weaponid, weaponname
-
-    def getserver(self, snippet, fullmessage = ""):
-        server = ""
-        response = requests.get('https://tone.sleepycat.date/v2/client/servers').json()
-        servers = response.keys()
-
-        for i in servers:
-            if(snippet.lower() in i.lower().replace(" ", "")):
-                server = i
-            if(i.lower() in fullmessage.lower().replace(" ", "")):
-                server = i
-                break
-
-        return server
     
     def getleaderboard(self, board, weaponid="", weaponname="", server=""):
         easyfilter = False
