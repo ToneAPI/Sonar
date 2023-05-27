@@ -92,57 +92,25 @@ class Leaderboard(commands.Cog):
         return return_message
 
     
-    def getleaderboard(self, board, weaponid="", weaponname="", server=""):
-        easyfilter = False
-        hardfilter = False
+    def getleaderboard(self, board:str, weaponid="", weaponname="", server=""):
         payload = {"weapon": weaponid, "server": server}
         response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
         players = response.keys()
-
-        if(board.lower() in ["kills", "deaths", "maxd", "totald"]):
-            if(board.lower() == "totald"):
-                board = "total_distance"
-            if(board.lower() == "maxd"):
-                board = "max_distance"       
-            easyfilter = True
-        else:
-            hardfilter = True
-        top10 = {}
-
-        if(len(players) < 10):
-            lb_length = len(players)
-        else:
-            lb_length = 10
-
-        while(len(top10)<lb_length):
-            current = 0 
-            name = ""
-            for p in players:
-                stats = response[p]
-                if(easyfilter):
-                    checked = stats[str(board)]
-                if(hardfilter):
-                    if(board.lower() == "kd"):
-                        if(weaponid != ""):
-                            deaths = stats['deaths_while_equipped']
-                        else:
-                            deaths = stats['deaths']
-                        if(deaths == 0):
-                            deaths = deaths + 1
-                        checked = round(stats["kills"] / deaths, 2)
-                    if(board.lower() == "avgd"):
-                        if(stats["kills"] == 0):
-                            kills = 1
-                        else:
-                            kills = stats["kills"]
-                        checked = round(stats["total_distance"] / kills, 2)
-                #print(checked, ", ", current )
-                if(checked >= current and stats["username"] not in top10.keys()):
-                     #print(checked, ", ", current)
-                     current = checked
-                     name = stats['username']
+        if(board.lower() == "totald"):
+            board = "total_distance"
+        elif(board.lower() == "maxd"):
+            board = "max_distance"
         
-            top10[name] = current
+        if(board.lower() == "kd"):
+            handler = lambda p : response[p]['kills'] / max(response[p].deaths, 1)
+        elif(board.lower() == "avgd"):
+            handler = lambda p : response[p]['total_distance'] / max(response[p].kills, 1)
+        else:
+            if(board.lower() not in ['username', 'deaths','kills', 'max_distance','total_distance']):
+                raise Exception("Key " + board.lower() + ' not found for player leaderboard')
+            handler = lambda p : response[p][board.lower()]
+            
+        result = sorted(players, key=handler, reverse=True)[:10]
 
         if(board.lower() == "deaths"):
             inbetween = "to"
@@ -157,14 +125,9 @@ class Leaderboard(commands.Cog):
         botmessage = str(f"Leaderboard of {board} {inbetween} {weaponname} for {server}\n-------------------------------\n")
 
         counter = 1
-        for i, j in top10.items():
-            if(hardfilter):
-                stat = str("{:0.2f}".format(j))
-            if(easyfilter):
-                stat = str(j)
-            botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{i :<20}" + " : "+ f"{stat:<8}" + "\n")
+        for p in result:
+            botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{response[p]['username'] :<20}" + " : "+ f"{str(handler(p)):<8}" + "\n")
             counter= counter+1 
-
         return botmessage
 
 async def setup(client):
