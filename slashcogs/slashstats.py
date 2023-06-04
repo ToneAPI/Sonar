@@ -8,6 +8,7 @@ import requests
 from Reuse.getPlayer import get_all_playerids
 from Reuse.getServer import getserver
 from Reuse.getStats import get_allplayer_stats
+from Reuse.getWeapon import getweaponid
 
 class SlashStats(commands.Cog):
     def __init__(self, client):
@@ -35,9 +36,9 @@ class SlashStats(commands.Cog):
                 return
 
             if(weapon != ""):
-                weaponid, weaponname = self.getweaponid(weapon)
+                weaponid, weaponname = getweaponid(weapon)
             if(servername != ""):
-                server = await getserver(servername)
+                server = await getserver(session, servername)
 
         async with aiohttp.ClientSession() as session:
             botmessage = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
