@@ -1,3 +1,4 @@
+import discord
 import requests
 
 def getleaderboard(board:str, weaponid="", weaponname="", server=""):
@@ -20,21 +21,21 @@ def getleaderboard(board:str, weaponid="", weaponname="", server=""):
             
     result = sorted(players, key=handler, reverse=True)[:10]
 
-    if(board.lower() == "deaths"):
-        inbetween = "to"
-    else:
-        inbetween = "with"
-
     if(server == ""):
-        server = "all servers"
+        server = "all"
     if(weaponname == ""):
-        weaponname = "any weapon"
+        weaponname = "any"
 
-    botmessage = str(f"Leaderboard of {board} {inbetween} {weaponname} for {server}\n-------------------------------\n")
+    botmessage = discord.Embed(title=f"Leaderboard of {board}", description=f"**Server:** {server}\n**Weapon:** {weaponname}", colour=discord.Colour.orange())    
+    if(weaponname != "any"):
+        if(requests.head(f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png").status_code == 200):
+            botmessage.set_thumbnail(url=f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png")
+        else:
+            botmessage.set_thumbnail(url="https://toneapi.github.io/ToneAPI_webclient/weapons/notfound.png")
 
     counter = 1
     for p in result:
-        botmessage = botmessage + str(f"{str(counter):<2}"+ " - " + f"{response[p]['username'] :<20}" + " : "+ f"{str(handler(p)):<8}" + "\n")
+        botmessage.add_field(name="", value=str(str(f"**{str(counter):<2} |** " + f"**{response[p]['username']}" + ":** ") + f'{str(round(handler(p), 1))}' + f"{str(' ' + board.replace('_', ' '))}"), inline=False)
         counter= counter+1 
 
     return botmessage

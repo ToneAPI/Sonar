@@ -33,9 +33,7 @@ class Leaderboard(commands.Cog):
         message = list(message)
         message = "".join(message)
         message = message.split(",")
-        print(message)
         async with aiohttp.ClientSession() as session:
-
             for item in message:
                 if(item.lower() in boards):
                     board = item;
@@ -58,7 +56,7 @@ class Leaderboard(commands.Cog):
 
         botmessage = getleaderboard(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
 
-        await ctx.send(f'```{botmessage}```')
+        await ctx.send(embed=botmessage)
 
 
 async def setup(client):
