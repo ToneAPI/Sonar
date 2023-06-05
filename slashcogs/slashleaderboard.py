@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import requests
-from Reuse.getLeaderboard import getleaderboard
+from Reuse.getLeaderboard import create_leaderboard_message, getleaderboard
 
 from Reuse.getServer import getserver
 from Reuse.getWeapon import getweaponid
@@ -31,17 +31,17 @@ class SlashLeaderboard(commands.Cog):
                 server = getserver(session,servername)
 
             if(board in boards):
-                botmessage = getleaderboard(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
+                botmessage, img_file = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
             else:
                 botmessage = "You gave a none existing filter"
 
-        await interaction.response.send_message(f'```{botmessage}```')
+        await interaction.response.send_message(file=img_file, embed=botmessage)
 
     
     @leaderboard.autocomplete("weapon")
     async def autocomplete_weapon(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
         data = []
-        weaponlist = ['execution', 'car', 'charge rifle', 'double take', 'epg', 'volt', 'lstar', 'r97', 'r-201', 'smart pistol', 'kraber', 'flatline', 're-45 auto', 'alternator', 'frag grenade', 'g2', 'spitfire', 'smr', 'softball', 'firestar', 'melee', 'masstiff', 'mgl', 'r-101', 'wingman', 'invalid', 'thunderbolt', 'dmr', 'electric smoke', 'cold war', 'satchel', 'eva-8 auto', 'mozambique', 'wingman elite', 'gravity star', 'pulse blade', 'archer', 'outOfBounds', 'mind crime', 'devotion', 'fall', 'p2016', 'arc grenade', 'hemlok', 'phase shift']
+        weaponlist = ['execution', 'car', 'charge rifle', 'double take', 'epg', 'volt', 'lstar', 'r97', 'r-201', 'smart pistol', 'kraber', 'flatline', 're-45 auto', 'alternator', 'frag grenade', 'g2', 'spitfire', 'smr', 'softball', 'firestar', 'melee', 'mastiff', 'mgl', 'r-101', 'wingman', 'invalid', 'thunderbolt', 'dmr', 'electric smoke', 'cold war', 'satchel', 'eva-8 auto', 'mozambique', 'wingman elite', 'gravity star', 'pulse blade', 'archer', 'outOfBounds', 'mind crime', 'devotion', 'fall', 'p2016', 'arc grenade', 'hemlok', 'phase shift']
         for weapon_choice in weaponlist:
             if(current.lower() in weapon_choice.lower()):
                 data.append(app_commands.Choice(name=weapon_choice, value=weapon_choice))

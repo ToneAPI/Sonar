@@ -1,3 +1,5 @@
+import datetime
+from PIL import Image, ImageDraw, ImageFont
 import discord
 import requests
 
@@ -21,6 +23,42 @@ def getleaderboard(board:str, weaponid="", weaponname="", server=""):
             
     result = sorted(players, key=handler, reverse=True)[:10]
 
+    counter = 1
+    message = ""
+    for p in result:
+        message = message + str(f"{str(counter):<2} | ") + str(f"{response[p]['username']:<18}:") + str(f'{str(round(handler(p), 1)):<6}' + f"{str(' ' + board.replace('_', ' '))}\n")
+        counter= counter+1 
+
+    return message
+
+
+def create_leaderboard_image(board:str, weaponid="", weaponname="", server=""):
+    message = getleaderboard(board, weaponid, weaponname, server)
+    image_width = 600
+    image_height = 300
+    background_color = (43, 45, 49) 
+
+    font_size = 24
+    font_color = (255, 255, 255)  
+    monospace_font_path = r'C:\Users\larsh\Documents\GitHub\Sonar\Reuse\Fonts\GTAmericaMono.ttf'
+
+    image = Image.new('RGB', (image_width, image_height), background_color)
+
+    font = ImageFont.truetype(monospace_font_path, font_size)
+
+    draw = ImageDraw.Draw(image)
+
+    text_width, text_height = draw.textsize(message, font=font)
+
+    text_x = (image_width - text_width) // 2
+    text_y = (image_height - text_height) // 2
+
+    draw.text((text_x, text_y), message, font=font, fill=font_color)
+
+    image.save('Reuse/images/leaderboard.png')
+
+def create_leaderboard_message(board:str, weaponid="", weaponname="", server=""):
+    create_leaderboard_image(board, weaponid, weaponname, server)
     if(server == ""):
         server = "all"
     if(weaponname == ""):
@@ -33,9 +71,11 @@ def getleaderboard(board:str, weaponid="", weaponname="", server=""):
         else:
             botmessage.set_thumbnail(url="https://toneapi.github.io/ToneAPI_webclient/weapons/notfound.png")
 
-    counter = 1
-    for p in result:
-        botmessage.add_field(name="", value=str(str(f"**{str(counter):<2} |** " + f"**{response[p]['username']}" + ":** ") + f'{str(round(handler(p), 1))}' + f"{str(' ' + board.replace('_', ' '))}"), inline=False)
-        counter= counter+1 
+    date_time = datetime.datetime.utcnow()
+    time = str(date_time)[11:16]
+    date = str(date_time)[0:10]
+    img_file = discord.File("Reuse/images/leaderboard.png", filename="leaderboard.png")
+    botmessage.set_image(url="attachment://leaderboard.png")
+    botmessage.set_footer(text=f"Brought to you by ToneAPI, created at {date} on {time}")
 
-    return botmessage
+    return botmessage, img_file

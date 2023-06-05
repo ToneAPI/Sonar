@@ -2,7 +2,7 @@ import aiohttp
 import discord
 from discord.ext import commands
 import requests
-from Reuse.getLeaderboard import getleaderboard
+from Reuse.getLeaderboard import create_leaderboard_message
 from Reuse.getServer import getserver
 
 from Reuse.getWeapon import getweaponid
@@ -53,10 +53,9 @@ class Leaderboard(commands.Cog):
             botmessage = botmessage + "\n*Note you need to split filters with comma's(,)"
             await ctx.send(f"```{botmessage}```")
 
+        botmessage, img_file = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
 
-        botmessage = getleaderboard(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
-
-        await ctx.send(embed=botmessage)
+        await ctx.send(file=img_file, embed=botmessage)
 
 
 async def setup(client):
