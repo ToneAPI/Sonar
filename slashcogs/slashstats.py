@@ -41,9 +41,13 @@ class SlashStats(commands.Cog):
                 server = await getserver(session, servername)
 
         async with aiohttp.ClientSession() as session:
-            botmessage = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
+            botmessage, img_file = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
 
-        await interaction.response.send_message(embed=botmessage)
+        if(img_file != ""):
+            await interaction.response.send_message(file=img_file, embed=botmessage)
+        else:
+            await interaction.response.send_message(embed=botmessage)
+
     
     @stats.autocomplete("weapon")
     async def autocomplete_weapon(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:

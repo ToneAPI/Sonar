@@ -45,7 +45,6 @@ class Stats(commands.Cog):
             return
 
         async with aiohttp.ClientSession() as session:
-            print(players.values())
             botmessage, img_file = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
 
         if(img_file != ""):
