@@ -28,7 +28,7 @@ async def sync(ctx):
         synced = await client.tree.sync()
         print(f'You synced {str(len(synced))} commands')
     else:
-        await ctx.send('You must be the botowner to use this command!')
+        await ctx.send("```You must be the botowner to use this command!```")
                                         
 async def main():
     async with client:
