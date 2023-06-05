@@ -45,10 +45,13 @@ class Stats(commands.Cog):
             return
 
         async with aiohttp.ClientSession() as session:
-            botmessage = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
+            print(players.values())
+            botmessage, img_file = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
 
-
-        await ctx.send(embed=botmessage)
+        if(img_file != ""):
+            await ctx.send(file=img_file, embed=botmessage)
+        else:
+            await ctx.send(embed=botmessage)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, err):

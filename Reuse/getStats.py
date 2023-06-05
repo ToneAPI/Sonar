@@ -3,6 +3,8 @@ import asyncio
 import discord
 import requests
 
+from Reuse.makePiechart import make_donut_chart
+
 async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server = ""):
         tasks = []
         for playerid in playerids:
@@ -20,11 +22,16 @@ async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server
                 botmessage.set_thumbnail(url=f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png")
             else:
                 botmessage.set_thumbnail(url="https://toneapi.github.io/ToneAPI_webclient/weapons/notfound.png")
-
+            
         for stats in res:
             botmessage.add_field(name=f"Stats for {stats['Player']}", value=stats['message'])
+
+        img_file = ""
+        if(len(res) == 1):
+            botmessage, img_file = make_donut_chart(botmessage, playerids, server)
             
-        return botmessage
+        
+        return botmessage, img_file
 
 async def getstats(s, playerid, weaponid = "", server = ""):
         payload = {'player': playerid, 'weapon': weaponid, 'server': server}
