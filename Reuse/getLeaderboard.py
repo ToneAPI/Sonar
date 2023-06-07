@@ -80,4 +80,4 @@ def create_leaderboard_message(board:str, weaponid="", weaponname="", server="")
     botmessage.add_field(name="", value=message)
     botmessage.set_footer(text=f"Brought to you by ToneAPI, created at {date} on {time}")
 
-    return botmessage, img_file
+    return botmessage
