@@ -53,9 +53,9 @@ class Leaderboard(commands.Cog):
             botmessage = botmessage + "\n*Note you need to split filters with comma's(,)"
             await ctx.send(f"```{botmessage}```")
 
-        botmessage, img_file = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
+        botmessage = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
 
-        await ctx.send(file=img_file, embed=botmessage)
+        await ctx.send(embed=botmessage)
 
 
 async def setup(client):
