@@ -40,7 +40,7 @@ def create_leaderboard_image(board:str, weaponid="", weaponname="", server=""):
 
     font_size = 24
     font_color = (255, 255, 255)  
-    monospace_font_path = r'C:\Users\larsh\Documents\GitHub\Sonar\Reuse\Fonts\GTAmericaMono.ttf'
+    monospace_font_path = r'Sonar\Reuse\Fonts\GTAmericaMono.ttf'
 
     image = Image.new('RGB', (image_width, image_height), background_color)
 
