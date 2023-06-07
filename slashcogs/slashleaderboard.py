@@ -31,11 +31,11 @@ class SlashLeaderboard(commands.Cog):
                 server = getserver(session,servername)
 
             if(board in boards):
-                botmessage, img_file = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
+                botmessage = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
             else:
                 botmessage = "You gave a none existing filter"
 
-        await interaction.response.send_message(file=img_file, embed=botmessage)
+        await interaction.response.send_message(embed=botmessage)
 
     
     @leaderboard.autocomplete("weapon")
