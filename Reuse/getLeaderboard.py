@@ -58,7 +58,8 @@ def create_leaderboard_image(board:str, weaponid="", weaponname="", server=""):
     image.save('Reuse/images/leaderboard.png')
 
 def create_leaderboard_message(board:str, weaponid="", weaponname="", server=""):
-    create_leaderboard_image(board, weaponid, weaponname, server)
+    #create_leaderboard_image(board, weaponid, weaponname, server)
+    message = getLeaderboard(board, weaponid, weaponname, server)
     if(server == ""):
         server = "all"
     if(weaponname == ""):
@@ -74,8 +75,9 @@ def create_leaderboard_message(board:str, weaponid="", weaponname="", server="")
     date_time = datetime.datetime.utcnow()
     time = str(date_time)[11:16]
     date = str(date_time)[0:10]
-    img_file = discord.File("Reuse/images/leaderboard.png", filename="leaderboard.png")
-    botmessage.set_image(url="attachment://leaderboard.png")
+    #img_file = discord.File("Reuse/images/leaderboard.png", filename="leaderboard.png")
+    #botmessage.set_image(url="attachment://leaderboard.png")
+    botmessage.add_field(name="", value=message)
     botmessage.set_footer(text=f"Brought to you by ToneAPI, created at {date} on {time}")
 
     return botmessage, img_file
