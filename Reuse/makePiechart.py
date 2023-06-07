@@ -93,6 +93,7 @@ def make_donut_chart(botmessage, playerid, server=""):
     plt.gca().add_artist(circle)
 
     plt.savefig("Reuse/images/player_weapons_used.png")
+    plt.close()
     img_file = discord.File("Reuse/images/player_weapons_used.png", filename="player_weapons_used.png")
     botmessage.set_image(url="attachment://player_weapons_used.png")
 
