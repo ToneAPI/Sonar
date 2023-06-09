@@ -29,10 +29,11 @@ async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server
         img_file = ""
         if(len(res) == 1):
             botmessage, img_file = make_donut_chart(botmessage, playerids, server)
-            
+            return botmessage, img_file
+        else:
+            img_file = ""
+            return botmessage, img_file
         
-        return botmessage, img_file
-
 async def getstats(s, playerid, weaponid = "", server = ""):
         payload = {'player': playerid, 'weapon': weaponid, 'server': server}
         async with s.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:

@@ -26,7 +26,7 @@ def getleaderboard(board:str, weaponid="", weaponname="", server=""):
     counter = 1
     message = ""
     for p in result:
-        message = message + str(f"{str(counter):<2} | ") + str(f"{response[p]['username']:<18}:") + str(f'{str(round(handler(p), 1)):<6}' + f"{str(' ' + board.replace('_', ' '))}\n")
+        message = message + str(f"**{str(counter):<2} | ") + str(f"{response[p]['username']:<18}:**") + str(f'{str(round(handler(p), 1)):<6}' + f"{str(' ' + board.replace('_', ' '))}\n")
         counter= counter+1 
 
     return message
@@ -59,7 +59,7 @@ def create_leaderboard_image(board:str, weaponid="", weaponname="", server=""):
 
 def create_leaderboard_message(board:str, weaponid="", weaponname="", server=""):
     #create_leaderboard_image(board, weaponid, weaponname, server)
-    message = getLeaderboard(board, weaponid, weaponname, server)
+    message = getleaderboard(board, weaponid, weaponname, server)
     if(server == ""):
         server = "all"
     if(weaponname == ""):

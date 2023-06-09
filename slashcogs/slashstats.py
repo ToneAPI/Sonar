@@ -31,6 +31,7 @@ class SlashStats(commands.Cog):
 
         async with aiohttp.ClientSession() as session:
             players = await get_all_playerids(session, playernames)
+            players = players[0]
             if(players == {} or players.keys() == []):
                 await interaction.response.send_message("```No existing player given.\nIf you put in multiple players make sure to split them with a comma(,)```")
                 return
@@ -42,6 +43,7 @@ class SlashStats(commands.Cog):
 
         async with aiohttp.ClientSession() as session:
             botmessage, img_file = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
+
 
         if(img_file != ""):
             await interaction.response.send_message(file=img_file, embed=botmessage)
@@ -70,6 +72,7 @@ class SlashStats(commands.Cog):
                 data.append(app_commands.Choice(name=server_choice, value=server_choice))
         return data
     
+
 
 async def setup(client):
     await client.add_cog(SlashStats(client))
