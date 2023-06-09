@@ -35,7 +35,7 @@ class Stats(commands.Cog):
             for item in residue:
                 if(weaponid == "" and item != None and item != ""):
                     weaponid, weaponname = getweaponid(item)
-                if(server == "" and item != None and item != "" and item != weaponname):
+                if(server == "" and item != None and item != "" and item not in weaponname):
                     server = await getserver(session, item)
             
 

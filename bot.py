@@ -29,6 +29,10 @@ async def sync(ctx):
         print(f'You synced {str(len(synced))} commands')
     else:
         await ctx.send("```You must be the botowner to use this command!```")
+
+@client.tree.error
+async def on_app_command_error(interaction, error):
+    print(f"{error}")
                                         
 async def main():
     async with client:
