@@ -28,7 +28,7 @@ class SlashLeaderboard(commands.Cog):
             if(weapon != ""):
                 weaponid, weaponname = getweaponid(weapon)
             if(servername != ""):
-                server = getserver(session,servername)
+                server = await getserver(session,servername)
 
             if(board in boards):
                 botmessage = create_leaderboard_message(weaponid=weaponid, weaponname=weaponname, server=server, board=board)
