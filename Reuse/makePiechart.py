@@ -96,13 +96,19 @@ def make_donut_chart(botmessage, playerid, server=""):
     plt.style.use('ggplot')
     explode = [0.02] * len(values)
     patches, texts, pcts = plt.pie(x=values, autopct='%.0f%%', startangle=90, pctdistance=0.6, explode=explode, colors=colors, labels=labels,  wedgeprops={'linewidth': 1.0, 'edgecolor': 'white'},
-       textprops={'size': 'medium', })
-    
+       textprops={'size': 'medium','color': 'white'})
+
     for i, patch in enumerate(patches):
         texts[i].set_color(patch.get_facecolor())
-    plt.setp(pcts, color='white', fontweight='bold')
-    plt.setp(texts, fontweight=600)
-    
+        plt.setp(pcts, color='white', fontweight='bold')
+        plt.setp(texts, fontweight=600)
+
+    for pct in pcts:
+        pct.set_color('white')
+        pct.set_path_effects([patheffects.Stroke(linewidth=1, foreground='black'), patheffects.Normal()])
+
+        
+
     plt.axis('equal')
     legend = plt.legend(labels=labels, loc='center', bbox_to_anchor=(0.5,-0.05,0,0), ncol=5, frameon=True)
     export_legend(legend)
@@ -123,7 +129,3 @@ def export_legend(legend, filename="Reuse/images/legend.png", expand=[-5,-5,5,5]
     bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
     bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(filename, dpi="figure", bbox_inches=bbox, transparent=True)
-
-
-    # outer = plt.Circle(xy=(0,0), radius=1.02, facecolor='white')
-    # plt.gca().add_artist(outer)
