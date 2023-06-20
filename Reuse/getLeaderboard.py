@@ -22,11 +22,14 @@ def getleaderboard(board:str, weaponid="", weaponname="", server=""):
         handler = lambda p : response[p][board.lower()]
             
     result = sorted(players, key=handler, reverse=True)[:10]
-
     counter = 1
     message = ""
     for p in result:
-        message = message + str(f"**{str(counter):<2} | ") + str(f"{response[p]['username']:<18}:**") + str(f'{str(round(handler(p), 1)):<6}' + f"{str(' ' + board.replace('_', ' '))}\n")
+        try:
+            message = message + str(f"**{str(counter):<2} | ") + str(f"{response[p]['username']:<18}:**") + str(f'{str(round(handler(p), 1)):<6}' + f"{str(' ' + board.replace('_', ' '))}\n")
+        except TypeError:
+            noname = requests.get(f"https://northstar.tf/accounts/get_username?uid={p}").json()
+            message = message + str(f"**{str(counter):<2} | ") + str(f"{noname['matches'][0]:<18}:**") + str(f'{str(round(handler(p), 1)):<6}' + f"{str(' ' + board.replace('_', ' '))}\n")
         counter= counter+1 
 
     return message
