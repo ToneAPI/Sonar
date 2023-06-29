@@ -54,7 +54,7 @@ class SlashLeaderboard(commands.Cog):
         for server_choice in servers.keys():
             if(current.lower() in server_choice.lower()):
                 data.append(app_commands.Choice(name=server_choice, value=server_choice))
-        return data
+        return data[:25]
     
     @leaderboard.autocomplete("board")
     async def autocomplete_server(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
@@ -63,7 +63,7 @@ class SlashLeaderboard(commands.Cog):
         for board_choice in boards:
             if(current.lower() in board_choice.lower()):
                 data.append(app_commands.Choice(name=board_choice, value=board_choice))
-        return data
+        return data[:25]
 
 async def setup(client):
     await client.add_cog(SlashLeaderboard(client))

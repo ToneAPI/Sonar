@@ -50,7 +50,22 @@ class SlashStats(commands.Cog):
         else:
             await interaction.response.send_message(embed=botmessage)
 
-    
+
+    @stats.autocomplete("playernames")
+    async def autocomplete_player(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        data = []
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://tone.sleepycat.date/v2/client/players') as r:
+                players = await r.json()
+
+        for player_choice in players.keys():
+            try:
+                if(current.lower() in players[player_choice]['username'].lower()):
+                    data.append(app_commands.Choice(name=players[player_choice]['username'], value=players[player_choice]['username']))
+            except AttributeError:
+                pass
+        return data[:25]
+
     @stats.autocomplete("weapon")
     async def autocomplete_weapon(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
         data = []
@@ -58,7 +73,7 @@ class SlashStats(commands.Cog):
         for weapon_choice in weaponlist:
             if(current.lower() in weapon_choice.lower()):
                 data.append(app_commands.Choice(name=weapon_choice, value=weapon_choice))
-        return data
+        return data[:25]
     
     @stats.autocomplete("servername")
     async def autocomplete_server(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
@@ -70,7 +85,7 @@ class SlashStats(commands.Cog):
         for server_choice in servers.keys():
             if(current.lower() in server_choice.lower()):
                 data.append(app_commands.Choice(name=server_choice, value=server_choice))
-        return data
+        return data[:25]
     
 
 
