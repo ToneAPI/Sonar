@@ -7,18 +7,22 @@ from Reuse.makePiechart import make_donut_chart
 from Reuse.valuesChartGamemode import valueschartgamemode
 from Reuse.valuesChartWeapon import valueschartweapon
 
-async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server = ""):
+async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server = "", mapid = "" ,mapname = "", gamemodeid = "",gamemode = ""):
         tasks = []
         for playerid in playerids:
-            task = asyncio.create_task(getstats(s, playerid, weaponid, server), name=playerid)
+            task = asyncio.create_task(getstats(s, playerid, weaponid, server, mapid, gamemodeid), name=playerid)
             tasks.append(task)
         res = await asyncio.gather(*tasks)
         if(server == ""):
             server = "All"
         if(weaponname == ""):
             weaponname = "Any"
+        if(mapname == ""):
+            mapname = "All"
+        if(gamemode == ""):
+            gamemode = "Any"
 
-        botmessage = discord.Embed(title="Stats", description=f"**Server:** {server}\n**Weapon:** {weaponname}", colour=discord.Colour.orange())
+        botmessage = discord.Embed(title="Stats", description=f"**Server:** {server}\n**Weapon:** {weaponname}\n**Gamemode:** {gamemode}\n**Map:** {mapname}", colour=discord.Colour.orange())
         if(weaponname != "Any"):
             if(requests.head(f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png").status_code == 200):
                 botmessage.set_thumbnail(url=f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png")
@@ -33,15 +37,15 @@ async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server
             if(server == "All" and weaponname != "Any"):
                 labels, values, colors = valueschartgamemode(playerid, weaponid)
             else: 
-                labels, values, colors = valueschartweapon(playerid, server)
+                labels, values, colors = valueschartweapon(playerid, server, mapid, mapname, gamemodeid, gamemode)
             botmessage, img_file = make_donut_chart(botmessage, labels, values, colors)
             return botmessage, img_file
         else:
             img_file = ""
             return botmessage, img_file
         
-async def getstats(s, playerid, weaponid = "", server = ""):
-        payload = {'player': playerid, 'weapon': weaponid, 'server': server}
+async def getstats(s, playerid, weaponid = "", server = "", mapid = "" , gamemodeid = ""):
+        payload = {'player': playerid, 'weapon': weaponid, 'server': server, 'gamemode': gamemodeid, 'map' : mapid}
         async with s.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:
             response = await r.json()
             if(response == {}):
