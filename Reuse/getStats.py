@@ -4,6 +4,8 @@ import discord
 import requests
 
 from Reuse.makePiechart import make_donut_chart
+from Reuse.valuesChartGamemode import valueschartgamemode
+from Reuse.valuesChartWeapon import valueschartweapon
 
 async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server = ""):
         tasks = []
@@ -28,7 +30,11 @@ async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server
 
         img_file = ""
         if(len(res) == 1):
-            botmessage, img_file = make_donut_chart(botmessage, playerids, server)
+            if(server == "All" and weaponname != "Any"):
+                labels, values, colors = valueschartgamemode(playerid, weaponid)
+            else: 
+                labels, values, colors = valueschartweapon(playerid, server)
+            botmessage, img_file = make_donut_chart(botmessage, labels, values, colors)
             return botmessage, img_file
         else:
             img_file = ""
