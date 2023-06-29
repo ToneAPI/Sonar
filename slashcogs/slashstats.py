@@ -4,6 +4,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import requests
+from Reuse.getGamemode import getgamemodeid
+from Reuse.getMap import getmapid
 
 from Reuse.getPlayer import get_all_playerids
 from Reuse.getServer import getserver
@@ -19,12 +21,16 @@ class SlashStats(commands.Cog):
         print("SlashStats.py is ready")
 
     @app_commands.command(name="stats", description="Gives the stats of the selected player/players filtered by weapon and server, if given")
-    @app_commands.describe(playernames = "Ingame name of the player or players", weapon = "Ingame Weaponname", servername = "A Tone supported server")
-    @app_commands.rename(playernames = "player", servername = "server")
-    async def stats(self, interaction: discord.Interaction, playernames : str, weapon : str = "", servername : str = ""):
+    @app_commands.describe(playernames = "Ingame name of the player or players", weapon = "Ingame Weaponname", servername = "A Tone supported server", givenmap = "Ingame map", givengamemode="ingame gamemode")
+    @app_commands.rename(playernames = "player", servername = "server", givenmap = "map", givengamemode= "gamemode")
+    async def stats(self, interaction: discord.Interaction, playernames : str, weapon : str = "", servername : str = "", givenmap : str = "", givengamemode : str = ""):
         server = ""
         weaponid = ""
         weaponname = ""
+        mapname = ""
+        gamemode = ""
+        mapid = ""
+        gamemodeid = ""
 
         playernames = playernames.replace(",", " ")
         playernames = playernames.split(" ")
@@ -38,11 +44,15 @@ class SlashStats(commands.Cog):
 
             if(weapon != ""):
                 weaponid, weaponname = getweaponid(weapon)
+            if(givengamemode != ""):
+                gamemodeid, gamemode = getgamemodeid(givengamemode)
+            if(givenmap != ""):
+                mapid, mapname = getmapid(givenmap)
             if(servername != ""):
                 server = await getserver(session, servername)
 
         async with aiohttp.ClientSession() as session:
-            botmessage, img_file = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server)
+            botmessage, img_file = await get_allplayer_stats(session, players.values(), weaponid, weaponname, server, mapid, mapname, gamemodeid, gamemode)
 
 
         if(img_file != ""):
@@ -87,6 +97,23 @@ class SlashStats(commands.Cog):
                 data.append(app_commands.Choice(name=server_choice, value=server_choice))
         return data[:25]
     
+    @stats.autocomplete("givenmap")
+    async def autocomplete_map(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        data = []
+        maplist = ['angel city', 'black water canal', 'coliseum', 'pillars', 'colony', 'complex', 'crashsite', 'drydock', 'eden', 'forwardbase kodai', 'glitch', 'boomtown', 'homestead', 'deck', 'meadow', 'stacks', 'township', 'trafic', 'uma', 'relic', 'rise', 'exoplanet', 'wargames']
+        for map_choice in maplist:
+            if(current.lower() in map_choice.lower()):
+                data.append(app_commands.Choice(name=map_choice, value=map_choice))
+        return data[:25]
+
+    @stats.autocomplete("givengamemode")
+    async def autocomplete_gamemode(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        data = []
+        gamemodelist = ['attrition', 'bounty hunt', 'one in the chamber', 'amped hardpoint', 'capture the flag', 'frontier defense', 'free for all', 'frontier war', 'gungame', 'infection', 'last titan standing', 'marked for death', 'pilots vs. pilots', 'sticks and stones', 'skirmish', 'titan brawl']
+        for gamemode_choice in gamemodelist:
+            if(current.lower() in gamemode_choice.lower()):
+                data.append(app_commands.Choice(name=gamemode_choice, value=gamemode_choice))
+        return data[:25]
 
 
 async def setup(client):
