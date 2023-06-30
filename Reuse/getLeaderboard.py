@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 import discord
 import requests
 
-def getleaderboard(board:str, weaponid="", weaponname="", server=""):
-    payload = {"weapon": weaponid, "server": server}
+def getleaderboard(board:str, weaponid="", server="", mapid = "", gamemodeid = ""):
+    payload = {"weapon": weaponid, "server": server, "map": mapid, "gamemode": gamemodeid}
     response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
     players = response.keys()
     if(board.lower() == "totald"):
@@ -35,8 +35,8 @@ def getleaderboard(board:str, weaponid="", weaponname="", server=""):
     return message
 
 
-def create_leaderboard_image(board:str, weaponid="", weaponname="", server=""):
-    message = getleaderboard(board, weaponid, weaponname, server)
+def create_leaderboard_image(board:str, weaponid="", server=""):
+    message = getleaderboard(board, weaponid, server)
     image_width = 600
     image_height = 300
     background_color = (43, 45, 49) 
@@ -60,15 +60,19 @@ def create_leaderboard_image(board:str, weaponid="", weaponname="", server=""):
 
     image.save('Reuse/images/leaderboard.png')
 
-def create_leaderboard_message(board:str, weaponid="", weaponname="", server=""):
+def create_leaderboard_message(board:str, weaponid="", weaponname="", server="", mapid = "" ,mapname = "", gamemodeid = "",gamemode = ""):
     #create_leaderboard_image(board, weaponid, weaponname, server)
-    message = getleaderboard(board, weaponid, weaponname, server)
+    message = getleaderboard(board, weaponid, server, mapid, gamemodeid)
     if(server == ""):
         server = "all"
     if(weaponname == ""):
         weaponname = "any"
+    if(mapname == ""):
+        mapname = "All"
+    if(gamemode == ""):
+        gamemode = "Any"        
 
-    botmessage = discord.Embed(title=f"Leaderboard of {board}", description=f"**Server:** {server}\n**Weapon:** {weaponname}", colour=discord.Colour.orange())    
+    botmessage = discord.Embed(title=f"Leaderboard of {board}", description=f"**Server:** {server}\n**Weapon:** {weaponname}\n**Gamemode:** {gamemode}\n**Map:** {mapname}", colour=discord.Colour.orange())   
     if(weaponname != "any"):
         if(requests.head(f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png").status_code == 200):
             botmessage.set_thumbnail(url=f"https://toneapi.github.io/ToneAPI_webclient/weapons/{weaponid}.png")
