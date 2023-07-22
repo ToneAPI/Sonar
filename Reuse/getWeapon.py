@@ -44,7 +44,8 @@ def getweaponid(givenweapon):
                     "p2016": "mp_weapon_semipistol",
                     "arc grenade": "mp_weapon_grenade_emp",
                     "hemlok": "mp_weapon_hemlok",
-                    "phase shift": "phase_shift"
+                    "phase shift": "phase_shift",
+                    "double barrel shotgun": "mp_weapon_shotgun_doublebarrel"
                 }
     
         weaponid = ""
