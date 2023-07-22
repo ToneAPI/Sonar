@@ -13,6 +13,8 @@ def getleaderboard(board:str, weaponid="", server="", mapid = "", gamemodeid = "
         board = "max_distance"
         
     if(board.lower() == "kd"):
+        if(weaponid != ""):
+            handler = lambda p : response[p]['kills'] / max(response[p]["deaths_while_equipped"], 1)
         handler = lambda p : response[p]['kills'] / max(response[p]["deaths"], 1)
     elif(board.lower() == "avgd"):
         handler = lambda p : response[p]['total_distance'] / max(response[p]["kills"], 1)
