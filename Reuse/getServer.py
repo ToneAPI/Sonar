@@ -1,6 +1,7 @@
+import os
 async def getserver(s,snippet):
     server = ""
-    async with s.get('https://tone.sleepycat.date/v2/client/servers') as r:
+    async with s.get(os.environ.get("TONE_ENDPOINT") + '/v2/client/servers') as r:
         response = await r.json()
         servers = response.keys()
         for i in servers:

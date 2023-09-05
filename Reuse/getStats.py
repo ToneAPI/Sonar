@@ -1,5 +1,5 @@
 import asyncio
-
+import os
 import discord
 import requests
 
@@ -46,7 +46,7 @@ async def get_allplayer_stats(s, playerids, weaponid = "", weaponname= "",server
         
 async def getstats(s, playerid, weaponid = "", server = "", mapid = "" , gamemodeid = ""):
         payload = {'player': playerid, 'weapon': weaponid, 'server': server, 'gamemode': gamemodeid, 'map' : mapid}
-        async with s.get('https://tone.sleepycat.date/v2/client/players', params=payload) as r:
+        async with s.get(os.environ.get("TONE_ENDPOINT") + '/v2/client/players', params=payload) as r:
             response = await r.json()
             if(response == {}):
                 async with s.get("https://northstar.tf/accounts/get_username", params={"uid": playerid}) as Er:

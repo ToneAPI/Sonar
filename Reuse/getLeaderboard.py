@@ -1,3 +1,4 @@
+import os
 import datetime
 from PIL import Image, ImageDraw, ImageFont
 import discord
@@ -5,7 +6,7 @@ import requests
 
 def getleaderboard(board:str, weaponid="", server="", mapid = "", gamemodeid = ""):
     payload = {"weapon": weaponid, "server": server, "map": mapid, "gamemode": gamemodeid}
-    response = requests.get('https://tone.sleepycat.date/v2/client/players', params=payload).json()
+    response = requests.get(os.environ.get("TONE_ENDPOINT") + '/v2/client/players', params=payload).json()
     players = response.keys()
     if(board.lower() == "totald"):
         board = "total_distance"

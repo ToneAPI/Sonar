@@ -3,7 +3,6 @@ from discord import app_commands
 import discord
 import os
 import asyncio
-from discordtoken import discordtoken
 
 client = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 client.remove_command('help')
@@ -38,6 +37,6 @@ async def main():
     async with client:
         await load()
         await slashload()
-        await client.start(discordtoken.get())
+        await client.start(os.environ.get("DISCORD_TOKEN"))
 
 asyncio.run(main())

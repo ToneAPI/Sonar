@@ -65,7 +65,7 @@ class SlashStats(commands.Cog):
     async def autocomplete_player(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
         data = []
         async with aiohttp.ClientSession() as session:
-            async with session.get('https://tone.sleepycat.date/v2/client/players') as r:
+            async with session.get(os.environ.get("TONE_ENDPOINT") + '/v2/client/players') as r:
                 players = await r.json()
 
         for player_choice in players.keys():
@@ -89,7 +89,7 @@ class SlashStats(commands.Cog):
     async def autocomplete_server(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
         data = []
         async with aiohttp.ClientSession() as session:
-            async with session.get('https://tone.sleepycat.date/v2/client/servers') as r:
+            async with session.get(os.environ.get("TONE_ENDPOINT") + '/v2/client/servers') as r:
                 servers = await r.json()
 
         for server_choice in servers.keys():
