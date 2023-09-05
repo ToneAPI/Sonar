@@ -8,3 +8,7 @@ for further information on commands do !help or !help <commandname> in a server 
 
 Invite link: https://discord.com/api/oauth2/authorize?client_id=1100115547515011182&permissions=414464862272&scope=bot
 Githublink: https://github.com/ToneAPI/Sonar
+
+```bash
+pip install -r requirements.txt
+```
